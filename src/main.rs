@@ -1,9 +1,8 @@
 use std::io;
-mod lexer;
-use lexer::tokenize;
+use plib::lexer;
 
 fn main() {
-    println!("{:?}", tokenize("(dudu \"Hello, world!\")".to_owned()));
+    println!("{:?}", lexer::tokenize("(dudu \"Hello, world!\")".to_owned()));
 }
 
 #[allow(dead_code)]
@@ -14,5 +13,3 @@ fn slurp_exp() -> String {
         .expect("Failed to read line");
     expr
 }
-
-

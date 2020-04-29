@@ -2,7 +2,7 @@ use std::collections::VecDeque;
 use std::iter::Peekable;
 use std::str::Chars;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Token {
     Symbol(String),
     String(String),
@@ -16,6 +16,7 @@ pub enum LexerError {
     Reason(String),
 }
 
+/// Divides supplied string into collection of tokens
 pub fn tokenize(code: String) -> Result<VecDeque<Token>, LexerError> {
     let mut chars = code.chars().peekable();
     let mut tokens: VecDeque<Token> = VecDeque::new();
