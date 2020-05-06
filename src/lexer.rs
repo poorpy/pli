@@ -35,15 +35,14 @@ pub fn tokenize(code: String) -> Result<VecDeque<Token>, LexerError> {
             continue;
         } else if c == &'\"' {
             chars.next();
-            let token = tokenize_string(&mut chars)?;  
+            let token = tokenize_string(&mut chars)?;
             tokens.push_back(token);
             continue;
-
         } else if (&c).is_whitespace() {
             chars.next();
             continue;
         }
-        
+
         let token = tokenize_symbol(&mut chars)?;
         tokens.push_back(token);
     }
