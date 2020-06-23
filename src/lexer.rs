@@ -1,6 +1,7 @@
 use std::collections::VecDeque;
 use std::iter::Peekable;
 use std::str::Chars;
+use std::fmt;
 
 #[derive(Debug, PartialEq)]
 pub enum Token {
@@ -14,6 +15,14 @@ pub enum Token {
 #[derive(Debug)]
 pub enum LexerError {
     Reason(String),
+}
+
+impl fmt::Display for LexerError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match &*self {
+            LexerError::Reason(res) => write!(f, "Lexer error: {}", res),
+        }
+    }
 }
 
 /// Divides supplied string into collection of tokens
@@ -51,10 +60,35 @@ pub fn tokenize(code: String) -> Result<VecDeque<Token>, LexerError> {
 }
 
 fn tokenize_symbol(code: &mut Peekable<Chars>) -> Result<Token, LexerError> {
+    fn is_forbidden(c: char) -> bool {
+        match c {
+            '\"' | '\''=> true,
+            _ => false
+        }
+    }
+
+    fn is_terminal(c: char) -> bool {
+        match c {
+            c if c.is_whitespace() => true,
+            '(' | ')' => true,
+            _ => false
+        }
+    }
+
     let mut symbol = String::new();
-    while let Some(c) = code.next() {
-        if c.is_whitespace() {
-            return Ok(Token::Symbol(symbol));
+    let mut forbidden: Vec<char> = Vec::new();
+    while let Some(c) = code.peek() {
+        if is_terminal(*c) {
+            if forbidden.is_empty() {
+                return Ok(Token::Symbol(symbol))
+            }
+            let msg = format!("invalid characters: {:?} in symbol: {}", forbidden, symbol);
+            return Err(LexerError::Reason(msg))
+        }
+
+        let c = code.next().unwrap();
+        if is_forbidden(c) {
+            forbidden.push(c)
         }
         symbol.push(c)
     }
