@@ -18,26 +18,36 @@ pub fn read_from_tokens(tokens: &mut VecDeque<Token>) -> Result<Sexp, Error> {
 }
 
 fn parse_list(tokens: &mut VecDeque<Token>) -> Result<Sexp, Error> {
-    let mut vec: Vec<Sexp> = Vec::new();
-    while let Some(token) = tokens.front() {
-        println!("{:?}", token);
-        if *token == Token::RParen {
-            tokens.pop_front();
+
+    fn collect(mut vec: Vec<Sexp>) -> Sexp {
             let start = Sexp::Cons {
                 car: Box::new(vec.pop().unwrap()),
                 cdr: Box::new(Sexp::Atom(Atom::Nil))
             };
-            return Ok(vec.into_iter().rfold(start, |acc, x| Sexp::Cons { car: Box::new(x), 
-                                                                    cdr: Box::new(acc)}));
+            vec.into_iter().rfold(start, |acc, x| Sexp::Cons { car: Box::new(x), 
+                                                                    cdr: Box::new(acc)})
+    }
+
+    let mut vec: Vec<Sexp> = Vec::new();
+    let mut terminated = false;
+    while let Some(token) = tokens.front() {
+        if *token == Token::RParen {
+            tokens.pop_front();
+            terminated = true;
+            break;
         }
 
-        if let Ok(sexp) = read_from_tokens(tokens) {
-            vec.push(sexp);
-        }
+        let sexp = read_from_tokens(tokens)?;
+        vec.push(sexp);
+    } 
+
+    if !terminated {
+        let mut msg = format!("missing ')' in expression: {}", collect(vec));
+        msg.pop();
+        return Err(Error::Reason(msg));
     }
-    println!("{:?}", tokens);
-    println!("{:?}", vec);
-    Err(Error::Reason("nie pykło byqu".to_owned()))
+
+    Ok(collect(vec))
 }
 
 fn parse_string(token: &str) -> Sexp {

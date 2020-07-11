@@ -1,6 +1,6 @@
-use std::rc::Rc;
-use std::fmt;
 use super::number::Number;
+use std::fmt;
+use std::rc::Rc;
 
 #[derive(Clone, Debug)]
 pub enum Atom {
@@ -20,10 +20,9 @@ impl fmt::Display for Atom {
             Atom::Char(c) => write!(f, "{}", c),
             Atom::Bool(b) => write!(f, "{}", b),
             Atom::Symbol(s) => write!(f, "{}", s),
-            Atom::Number(n) => write!(f, "{}", n)
+            Atom::Number(n) => write!(f, "{}", n),
         }
     }
-    
 }
 
 #[derive(Clone)]
@@ -37,6 +36,13 @@ pub enum Error {
     Reason(String),
 }
 
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let Error::Reason(res) = &*self;
+        write!(f, "Parser error: {}", res)
+    }
+}
+
 #[derive(Debug)]
 pub enum Sexp {
     Atom(Atom),
@@ -47,7 +53,7 @@ impl fmt::Display for Sexp {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match &*self {
             Sexp::Atom(a) => write!(f, "{}", a),
-            Sexp::Cons { car, cdr } => write!(f, "({} . {})", car, cdr)
+            Sexp::Cons { car, cdr } => write!(f, "({} . {})", car, cdr),
         }
     }
 }
