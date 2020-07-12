@@ -89,6 +89,10 @@ fn parse_atom(token: &str) -> Sexp {
     }
 }
 
-fn parse_quoted(_tokens: &mut VecDeque<Token>) -> Result<Sexp, Error> {
-    unimplemented!()
+fn parse_quoted(tokens: &mut VecDeque<Token>) -> Result<Sexp, Error> {
+    let sexp = Sexp::Cons {
+            car: Box::new(Sexp::Atom(Atom::Symbol("'".to_owned()))),
+            cdr: Box::new(read_from_tokens(tokens)?),
+    };
+    Ok(sexp)
 }

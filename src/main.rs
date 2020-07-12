@@ -3,10 +3,10 @@ use plib::parser::read_from_tokens;
 use std::io;
 
 fn main() {
-    let tokens = tokenize("(+ 1 2 ".to_owned());
+    let tokens = tokenize("'(+ 1 2)".to_owned());
     if let Ok(mut deque) = tokens {
         let res = read_from_tokens(&mut deque);
-        println!("{:?}", &res);
+        // println!("{:?}", &res);
         match res {
             Ok(sexp) => println!("{}", sexp),
             Err(err) => println!("{}", err)
