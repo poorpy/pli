@@ -1,7 +1,7 @@
 use std::collections::VecDeque;
+use std::fmt;
 use std::iter::Peekable;
 use std::str::Chars;
-use std::fmt;
 
 #[derive(Debug, PartialEq)]
 pub enum Token {
@@ -62,8 +62,8 @@ pub fn tokenize(code: String) -> Result<VecDeque<Token>, LexerError> {
 fn tokenize_symbol(code: &mut Peekable<Chars>) -> Result<Token, LexerError> {
     fn is_forbidden(c: char) -> bool {
         match c {
-            '\"' | '\''=> true,
-            _ => false
+            '\"' | '\'' => true,
+            _ => false,
         }
     }
 
@@ -71,7 +71,7 @@ fn tokenize_symbol(code: &mut Peekable<Chars>) -> Result<Token, LexerError> {
         match c {
             c if c.is_whitespace() => true,
             '(' | ')' => true,
-            _ => false
+            _ => false,
         }
     }
 
@@ -80,10 +80,10 @@ fn tokenize_symbol(code: &mut Peekable<Chars>) -> Result<Token, LexerError> {
     while let Some(c) = code.peek() {
         if is_terminal(*c) {
             if forbidden.is_empty() {
-                return Ok(Token::Symbol(symbol))
+                return Ok(Token::Symbol(symbol));
             }
             let msg = format!("invalid characters: {:?} in symbol: {}", forbidden, symbol);
-            return Err(LexerError::Reason(msg))
+            return Err(LexerError::Reason(msg));
         }
 
         let c = code.next().unwrap();

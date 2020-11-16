@@ -2,14 +2,17 @@ use super::number::Number;
 use std::fmt;
 use std::rc::Rc;
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub enum Atom {
     Nil,
     Char(char),
     Bool(bool),
     Symbol(String),
     Number(Number),
-    // Func(fn(&Sexp) -> Result<Sexp, Error>),
+    Func {
+        fun: fn(&Sexp) -> Result<Sexp, Error>,
+        name: &'static str,
+    },
     // Lambda(Lambda)
 }
 
@@ -21,6 +24,7 @@ impl fmt::Display for Atom {
             Atom::Bool(b) => write!(f, "{}", b),
             Atom::Symbol(s) => write!(f, "{}", s),
             Atom::Number(n) => write!(f, "{}", n),
+            Atom::Func { name, .. } => write!(f, "builtin function {}", name),
         }
     }
 }
@@ -39,11 +43,11 @@ pub enum Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let Error::Reason(res) = &*self;
-        write!(f, "Parser error: {}", res)
+        write!(f, "Error: {}", res)
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone)]
 pub enum Sexp {
     Atom(Atom),
     Cons { car: Box<Sexp>, cdr: Box<Sexp> },

@@ -1,18 +1,35 @@
+use plib::env::Env;
+use plib::eval::eval;
 use plib::lexer::tokenize;
 use plib::parser::read_from_tokens;
 use std::io;
 
 fn main() {
-    let tokens = tokenize("'(+ 1 2)".to_owned());
+    let samples = [
+        "nil".to_owned(),
+        "6".to_owned(),
+        "6.5".to_owned(),
+        "true".to_owned(),
+        "symbol?".to_owned(),
+        "'symbol?".to_owned(),
+    ];
+    for sample in samples.iter() {
+        simple_eval(sample.clone());
+    }
+}
+
+fn simple_eval(code: String) {
+    let mut default_env = Env::default_env();
+    let tokens = tokenize(code);
     if let Ok(mut deque) = tokens {
-        let res = read_from_tokens(&mut deque);
+        let res = read_from_tokens(&mut deque).unwrap();
         // println!("{:?}", &res);
-        match res {
+        match eval(&res, &mut default_env) {
             Ok(sexp) => println!("{}", sexp),
-            Err(err) => println!("{}", err)
+            Err(err) => println!("{}", err),
         }
-    } else if let Err(err) = tokens{
-        println!{"{}", err}
+    } else if let Err(err) = tokens {
+        println! {"{}", err}
     }
 }
 
@@ -24,6 +41,3 @@ fn slurp_exp() -> String {
         .expect("Failed to read line");
     expr
 }
-
-
-
