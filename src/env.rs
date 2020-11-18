@@ -58,6 +58,7 @@ impl<'a> Env<'a> {
         add_function_to_env!(
             "boolean?";
             |sexp| {
+                println!("{}",sexp);
                 if let Sexp::Atom(a) = sexp {
                     if let Atom::Bool(_) = a {
                         return Ok(Sexp::Atom(Atom::Bool(true)));
@@ -155,6 +156,14 @@ impl<'a> Env<'a> {
                     }
                 }
                 Ok(Sexp::Atom(Atom::Bool(false)))
+            };
+            default
+        );
+
+        add_function_to_env!(
+            "'";
+            |sexp| {
+                Ok(sexp.clone())
             };
             default
         );

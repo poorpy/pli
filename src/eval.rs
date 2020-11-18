@@ -20,5 +20,26 @@ fn eval_atom(atom: &Atom, env: &mut Env) -> Result<Sexp, Error> {
 }
 
 fn eval_cons(car: &Sexp, cdr: &Sexp, env: &mut Env) -> Result<Sexp, Error> {
-    unimplemented!()
+    match car {
+        Sexp::Atom(a) => apply(a, cdr, env),
+        cons @ Sexp::Cons { .. } => {
+            let func = eval(cons, env)?;
+            eval_cons(&func, cdr, env)
+        }
+    }
+}
+
+fn apply(func: &Atom, args: &Sexp, env: &mut Env) -> Result<Sexp, Error> {
+    if let Atom::Func { fun, .. } = func {
+        return fun(args);
+    }
+
+    if let Atom::Symbol(s) = func {
+        let func = env.search(s)?;
+        return eval_cons(&func, args, env);
+    }
+
+    Err(Error::Reason(
+        "first argument must be a function".to_owned(),
+    ))
 }
