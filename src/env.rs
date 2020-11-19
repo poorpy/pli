@@ -14,6 +14,15 @@ macro_rules! add_function_to_env {
     };
 }
 
+macro_rules! check_arity {
+    ($ arg : expr , $ num : expr) => {
+        if $arg.len() > $num {
+            let msg = format!("wrong arity, function takes {} arguments", $num);
+            return Err(Error::Reason(msg));
+        };
+    };
+}
+
 pub struct Env<'a> {
     pub data: HashMap<String, Sexp>,
     pub outer: Option<&'a Env<'a>>,
@@ -47,7 +56,8 @@ impl<'a> Env<'a> {
         add_function_to_env!(
             "atom?";
             |sexp| {
-                if let Sexp::Atom(_) = sexp {
+                check_arity!(sexp, 1);
+                if let Sexp::Atom(_) = sexp.car() {
                     return Ok(Sexp::Atom(Atom::Bool(true)));
                 }
                 Ok(Sexp::Atom(Atom::Bool(false)))
@@ -58,8 +68,8 @@ impl<'a> Env<'a> {
         add_function_to_env!(
             "boolean?";
             |sexp| {
-                println!("{}",sexp);
-                if let Sexp::Atom(a) = sexp {
+                check_arity!(sexp, 1);
+                if let Sexp::Atom(a) = sexp.car() {
                     if let Atom::Bool(_) = a {
                         return Ok(Sexp::Atom(Atom::Bool(true)));
                     }
@@ -72,7 +82,8 @@ impl<'a> Env<'a> {
         add_function_to_env!(
             "char?";
             |sexp| {
-                if let Sexp::Atom(a) = sexp {
+                check_arity!(sexp, 1);
+                if let Sexp::Atom(a) = sexp.car() {
                     if let Atom::Char(_) = a {
                         return Ok(Sexp::Atom(Atom::Bool(true)));
                     }
@@ -85,7 +96,8 @@ impl<'a> Env<'a> {
         add_function_to_env!(
             "integer?";
             |sexp| {
-                if let Sexp::Atom(a) = sexp {
+                check_arity!(sexp, 1);
+                if let Sexp::Atom(a) = sexp.car() {
                     if let Atom::Number(n) = a {
                         if let Number::Int(_) = n {
                             return Ok(Sexp::Atom(Atom::Bool(true)));
@@ -100,7 +112,8 @@ impl<'a> Env<'a> {
         add_function_to_env!(
             "number?";
             |sexp| {
-                if let Sexp::Atom(a) = sexp {
+                check_arity!(sexp, 1);
+                if let Sexp::Atom(a) = sexp.car() {
                     if let Atom::Number(_) = a {
                         return Ok(Sexp::Atom(Atom::Bool(true)));
                     }
@@ -124,7 +137,8 @@ impl<'a> Env<'a> {
         add_function_to_env!(
             "symbol?";
             |sexp| {
-                if let Sexp::Atom(a) = sexp {
+                check_arity!(sexp, 1);
+                if let Sexp::Atom(a) = sexp.car() {
                     if let Atom::Symbol(_) = a {
                         return Ok(Sexp::Atom(Atom::Bool(true)));
                     }
@@ -137,7 +151,8 @@ impl<'a> Env<'a> {
         add_function_to_env!(
             "function?";
             |sexp| {
-                if let Sexp::Atom(a) = sexp {
+                check_arity!(sexp, 1);
+                if let Sexp::Atom(a) = sexp.car() {
                     if let Atom::Func {..} = a {
                         return Ok(Sexp::Atom(Atom::Bool(true)));
                     }
@@ -150,20 +165,13 @@ impl<'a> Env<'a> {
         add_function_to_env!(
             "null?";
             |sexp| {
+                check_arity!(sexp, 1);
                 if let Sexp::Atom(a) = sexp {
                     if let Atom::Nil = a {
                         return Ok(Sexp::Atom(Atom::Bool(true)));
                     }
                 }
                 Ok(Sexp::Atom(Atom::Bool(false)))
-            };
-            default
-        );
-
-        add_function_to_env!(
-            "'";
-            |sexp| {
-                Ok(sexp.clone())
             };
             default
         );

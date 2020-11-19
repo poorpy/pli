@@ -53,6 +53,33 @@ pub enum Sexp {
     Cons { car: Box<Sexp>, cdr: Box<Sexp> },
 }
 
+impl Sexp {
+    pub fn len(&self) -> usize {
+        if let Sexp::Cons { cdr, .. } = self {
+            let mut counter: usize = 1;
+            let mut next: &Sexp = &(**cdr);
+            loop {
+                if let Sexp::Cons { cdr, .. } = next {
+                    counter += 1;
+                    next = &(**cdr);
+                } else {
+                    break;
+                }
+            }
+            return counter;
+        }
+        // default return if Sexp is not Cons
+        0
+    }
+
+    pub fn car(&self) -> &Sexp {
+        match self {
+            Sexp::Atom(_) => self,
+            Sexp::Cons { car, .. } => car,
+        }
+    }
+}
+
 impl fmt::Display for Sexp {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match &*self {

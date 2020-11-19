@@ -6,13 +6,18 @@ use std::io;
 
 fn main() {
     let samples = [
-        // "nil".to_owned(),
-        // "6".to_owned(),
-        // "6.5".to_owned(),
-        // "true".to_owned(),
-        // "symbol?".to_owned(),
+        "nil".to_owned(),
+        "6".to_owned(),
+        "6.5".to_owned(),
+        "true".to_owned(),
+        "symbol?".to_owned(),
         "'symbol?".to_owned(),
         "(boolean? true)".to_owned(),
+        "(number? true)".to_owned(),
+        "(number? 1.0)".to_owned(),
+        "(integer? 1)".to_owned(),
+        "(cons? (true false))".to_owned(),
+        "(cons? '(true false))".to_owned(),
     ];
     for sample in samples.iter() {
         simple_eval(sample.clone());
@@ -24,7 +29,6 @@ fn simple_eval(code: String) {
     let tokens = tokenize(code);
     if let Ok(mut deque) = tokens {
         let res = read_from_tokens(&mut deque).unwrap();
-        // println!("{:?}", &res);
         match eval(&res, &mut default_env) {
             Ok(sexp) => println!("{}", sexp),
             Err(err) => println!("{}", err),
