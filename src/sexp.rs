@@ -1,5 +1,6 @@
 use super::number::Number;
 use std::fmt;
+use std::iter::{IntoIterator, Iterator};
 use std::rc::Rc;
 
 #[derive(Clone)]
@@ -53,38 +54,52 @@ pub enum Sexp {
     Cons { car: Box<Sexp>, cdr: Box<Sexp> },
 }
 
-impl Sexp {
-    pub fn len(&self) -> usize {
-        if let Sexp::Cons { cdr, .. } = self {
-            let mut counter: usize = 1;
-            let mut next: &Sexp = &(**cdr);
-            loop {
-                if let Sexp::Cons { cdr, .. } = next {
-                    counter += 1;
-                    next = &(**cdr);
-                } else {
-                    break;
-                }
-            }
-            return counter;
-        }
-        // default return if Sexp is not Cons
-        0
-    }
-
-    pub fn car(&self) -> &Sexp {
-        match self {
-            Sexp::Atom(_) => self,
-            Sexp::Cons { car, .. } => car,
-        }
-    }
-}
-
 impl fmt::Display for Sexp {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match &*self {
             Sexp::Atom(a) => write!(f, "{}", a),
             Sexp::Cons { car, cdr } => write!(f, "({} . {})", car, cdr),
         }
+    }
+}
+
+impl<'a> IntoIterator for &'a Sexp {
+    type Item = &'a Sexp;
+    type IntoIter = SexpIntoIterator<'a>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        SexpIntoIterator { item: Some(self) }
+    }
+}
+
+pub struct SexpIntoIterator<'a> {
+    item: Option<&'a Sexp>,
+}
+
+// impl<'a> SexpIntoIterator<'a> {
+//     pub fn take(&self, n: usize) -> Result<Sexp, >
+// }
+
+impl<'a> Iterator for SexpIntoIterator<'a> {
+    type Item = &'a Sexp;
+
+    fn next(&mut self) -> Option<&'a Sexp> {
+        if let Some(i) = self.item {
+            match i {
+                a @ Sexp::Atom(_) => {
+                    self.item = None;
+                    return Some(a);
+                }
+                Sexp::Cons { car, cdr } => {
+                    if let Sexp::Atom(Atom::Nil) = **cdr {
+                        self.item = None;
+                    } else {
+                        self.item = Some(cdr);
+                    }
+                    return Some(car);
+                }
+            }
+        }
+        None
     }
 }

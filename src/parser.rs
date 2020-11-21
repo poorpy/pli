@@ -1,7 +1,7 @@
-use std::collections::VecDeque;
 use super::lexer::Token;
-use super::sexp::{Sexp, Error, Atom};
 use super::number::Number;
+use super::sexp::{Atom, Error, Sexp};
+use std::collections::VecDeque;
 
 pub fn read_from_tokens(tokens: &mut VecDeque<Token>) -> Result<Sexp, Error> {
     let token = tokens.pop_front();
@@ -18,14 +18,15 @@ pub fn read_from_tokens(tokens: &mut VecDeque<Token>) -> Result<Sexp, Error> {
 }
 
 fn parse_list(tokens: &mut VecDeque<Token>) -> Result<Sexp, Error> {
-
     fn collect(mut vec: Vec<Sexp>) -> Sexp {
-            let start = Sexp::Cons {
-                car: Box::new(vec.pop().unwrap()),
-                cdr: Box::new(Sexp::Atom(Atom::Nil))
-            };
-            vec.into_iter().rfold(start, |acc, x| Sexp::Cons { car: Box::new(x), 
-                                                                    cdr: Box::new(acc)})
+        let start = Sexp::Cons {
+            car: Box::new(vec.pop().unwrap()),
+            cdr: Box::new(Sexp::Atom(Atom::Nil)),
+        };
+        vec.into_iter().rfold(start, |acc, x| Sexp::Cons {
+            car: Box::new(x),
+            cdr: Box::new(acc),
+        })
     }
 
     let mut vec: Vec<Sexp> = Vec::new();
@@ -39,7 +40,7 @@ fn parse_list(tokens: &mut VecDeque<Token>) -> Result<Sexp, Error> {
 
         let sexp = read_from_tokens(tokens)?;
         vec.push(sexp);
-    } 
+    }
 
     if !terminated {
         let mut msg = format!("missing ')' in expression: {}", collect(vec));
@@ -90,9 +91,13 @@ fn parse_atom(token: &str) -> Sexp {
 }
 
 fn parse_quoted(tokens: &mut VecDeque<Token>) -> Result<Sexp, Error> {
+    let tail = Sexp::Cons {
+        car: Box::new(read_from_tokens(tokens)?),
+        cdr: Box::new(Sexp::Atom(Atom::Nil)),
+    };
     let sexp = Sexp::Cons {
-            car: Box::new(Sexp::Atom(Atom::Symbol("'".to_owned()))),
-            cdr: Box::new(read_from_tokens(tokens)?),
+        car: Box::new(Sexp::Atom(Atom::Symbol("'".to_owned()))),
+        cdr: Box::new(tail),
     };
     Ok(sexp)
 }
