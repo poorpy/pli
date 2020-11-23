@@ -30,6 +30,19 @@ impl fmt::Display for Atom {
     }
 }
 
+impl fmt::Debug for Atom {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match &*self {
+            Atom::Nil => write!(f, "nil"),
+            Atom::Char(c) => write!(f, "{}", c),
+            Atom::Bool(b) => write!(f, "{}", b),
+            Atom::Symbol(s) => write!(f, "{}", s),
+            Atom::Number(n) => write!(f, "{}", n),
+            Atom::Func { name, .. } => write!(f, "builtin function {}", name),
+        }
+    }
+}
+
 #[derive(Clone)]
 pub struct Lambda {
     pub params_exp: Rc<Sexp>,
@@ -59,6 +72,19 @@ impl fmt::Display for Sexp {
         match &*self {
             Sexp::Atom(a) => write!(f, "{}", a),
             Sexp::Cons { car, cdr } => write!(f, "({} . {})", car, cdr),
+        }
+    }
+}
+
+impl fmt::Debug for Sexp {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match &*self {
+            Sexp::Atom(a) => write!(f, "{}", a),
+            Sexp::Cons { car, cdr } => f
+                .debug_struct("Cons")
+                .field("car", car)
+                .field("cdr", cdr)
+                .finish(),
         }
     }
 }
