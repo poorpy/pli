@@ -12,7 +12,7 @@ pub enum Token {
     RParen,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum LexerError {
     Reason(String),
 }
@@ -93,6 +93,10 @@ fn tokenize_symbol(code: &mut Peekable<Chars>) -> Result<Token, LexerError> {
         symbol.push(c)
     }
 
+    if !forbidden.is_empty() {
+        let msg = format!("invalid characters: {:?} in symbol: {}", forbidden, symbol);
+        return Err(LexerError::Reason(msg));
+    }
     Ok(Token::Symbol(symbol))
 }
 
