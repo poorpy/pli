@@ -1,14 +1,15 @@
 use super::number::Number;
 use std::fmt;
-use std::iter::{IntoIterator, Iterator};
+use itertools::Itertools;
+// use std::iter::{IntoIterator, Iterator};
 use std::rc::Rc;
 
 #[derive(Clone)]
 pub enum Atom {
-    Nil,
     Char(char),
     Bool(bool),
     Symbol(String),
+    String(String),
     Number(Number),
     Func {
         fun: fn(&Sexp) -> Result<Sexp, Error>,
@@ -20,10 +21,11 @@ pub enum Atom {
 impl fmt::Display for Atom {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match &*self {
-            Atom::Nil => write!(f, "nil"),
+            // Atom::Nil => write!(f, "nil"),
             Atom::Char(c) => write!(f, "{}", c),
             Atom::Bool(b) => write!(f, "{}", b),
             Atom::Symbol(s) => write!(f, "{}", s),
+            Atom::String(s) => write!(f, "\"{}\"", s),
             Atom::Number(n) => write!(f, "{}", n),
             Atom::Func { name, .. } => write!(f, "builtin function {}", name),
         }
@@ -33,10 +35,11 @@ impl fmt::Display for Atom {
 impl fmt::Debug for Atom {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match &*self {
-            Atom::Nil => write!(f, "nil"),
+            // Atom::Nil => write!(f, "nil"),
             Atom::Char(c) => write!(f, "{}", c),
             Atom::Bool(b) => write!(f, "{}", b),
             Atom::Symbol(s) => write!(f, "{}", s),
+            Atom::String(s) => write!(f, "\"{}\"", s),
             Atom::Number(n) => write!(f, "{}", n),
             Atom::Func { name, .. } => write!(f, "builtin function {}", name),
         }
@@ -64,14 +67,19 @@ impl fmt::Display for Error {
 #[derive(Clone)]
 pub enum Sexp {
     Atom(Atom),
-    Cons { car: Box<Sexp>, cdr: Box<Sexp> },
+    List(Vec<Sexp>),
 }
 
 impl fmt::Display for Sexp {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match &*self {
             Sexp::Atom(a) => write!(f, "{}", a),
-            Sexp::Cons { car, cdr } => write!(f, "({} . {})", car, cdr),
+            Sexp::List(l) => {
+                let sexp = l
+                    .iter()
+                    .format(" ");
+                write!(f, "({})", sexp)
+            }
         }
     }
 }
@@ -80,52 +88,48 @@ impl fmt::Debug for Sexp {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match &*self {
             Sexp::Atom(a) => write!(f, "{}", a),
-            Sexp::Cons { car, cdr } => f
-                .debug_struct("Cons")
-                .field("car", car)
-                .field("cdr", cdr)
-                .finish(),
+            Sexp::List(l) => write!(f, "{:?}", l),
         }
     }
 }
 
-impl<'a> IntoIterator for &'a Sexp {
-    type Item = &'a Sexp;
-    type IntoIter = SexpIntoIterator<'a>;
+// impl<'a> IntoIterator for &'a Sexp {
+//     type Item = &'a Sexp;
+//     type IntoIter = SexpIntoIterator<'a>;
 
-    fn into_iter(self) -> Self::IntoIter {
-        SexpIntoIterator { item: Some(self) }
-    }
-}
-
-pub struct SexpIntoIterator<'a> {
-    item: Option<&'a Sexp>,
-}
-
-// impl<'a> SexpIntoIterator<'a> {
-//     pub fn take(&self, n: usize) -> Result<Sexp, >
+//     fn into_iter(self) -> Self::IntoIter {
+//         SexpIntoIterator { item: Some(self) }
+//     }
 // }
 
-impl<'a> Iterator for SexpIntoIterator<'a> {
-    type Item = &'a Sexp;
+// pub struct SexpIntoIterator<'a> {
+//     item: Option<&'a Sexp>,
+// }
 
-    fn next(&mut self) -> Option<&'a Sexp> {
-        if let Some(i) = self.item {
-            match i {
-                a @ Sexp::Atom(_) => {
-                    self.item = None;
-                    return Some(a);
-                }
-                Sexp::Cons { car, cdr } => {
-                    if let Sexp::Atom(Atom::Nil) = **cdr {
-                        self.item = None;
-                    } else {
-                        self.item = Some(cdr);
-                    }
-                    return Some(car);
-                }
-            }
-        }
-        None
-    }
-}
+// // impl<'a> SexpIntoIterator<'a> {
+// //     pub fn take(&self, n: usize) -> Result<Sexp, >
+// // }
+
+// impl<'a> Iterator for SexpIntoIterator<'a> {
+//     type Item = &'a Sexp;
+
+//     fn next(&mut self) -> Option<&'a Sexp> {
+//         if let Some(i) = self.item {
+//             match i {
+//                 a @ Sexp::Atom(_) => {
+//                     self.item = None;
+//                     return Some(a);
+//                 }
+//                 Sexp::Cons { car, cdr } => {
+//                     if let Sexp::Atom(Atom::Nil) = **cdr {
+//                         self.item = None;
+//                     } else {
+//                         self.item = Some(cdr);
+//                     }
+//                     return Some(car);
+//                 }
+//             }
+//         }
+//         None
+//     }
+// }

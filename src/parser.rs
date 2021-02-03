@@ -12,23 +12,13 @@ pub fn read_from_tokens(tokens: &mut VecDeque<Token>) -> Result<Sexp, Error> {
             Token::RParen => Err(Error::Reason("unexpected ')'".to_owned())),
             Token::Quote => parse_quoted(tokens),
             Token::Symbol(s) => Ok(parse_atom(&s)),
-            Token::String(s) => Ok(parse_string(&s)),
+            Token::String(s) => Ok(Sexp::Atom(Atom::String(s)))
+            // Token::String(s) => Ok(Sexp::Atom(Atom::S)),
         },
     }
 }
 
 fn parse_list(tokens: &mut VecDeque<Token>) -> Result<Sexp, Error> {
-    fn collect(mut vec: Vec<Sexp>) -> Sexp {
-        let start = Sexp::Cons {
-            car: Box::new(vec.pop().unwrap()),
-            cdr: Box::new(Sexp::Atom(Atom::Nil)),
-        };
-        vec.into_iter().rfold(start, |acc, x| Sexp::Cons {
-            car: Box::new(x),
-            cdr: Box::new(acc),
-        })
-    }
-
     let mut vec: Vec<Sexp> = Vec::new();
     let mut terminated = false;
     while let Some(token) = tokens.front() {
@@ -43,43 +33,43 @@ fn parse_list(tokens: &mut VecDeque<Token>) -> Result<Sexp, Error> {
     }
 
     if !terminated {
-        let mut msg = format!("missing ')' in expression: {}", collect(vec));
+        let mut msg = format!("missing ')' in expression: {}", Sexp::List(vec));
         msg.pop();
         return Err(Error::Reason(msg));
     }
 
-    Ok(collect(vec))
+    Ok(Sexp::List(vec))
 }
 
-fn parse_string(token: &str) -> Sexp {
-    let mut rev = token.chars().rev();
+// fn parse_string(token: &str) -> Sexp {
+//     let mut rev = token.chars().rev();
 
-    if let Some(first) = rev.next() {
-        let mut sexp = Box::new(Sexp::Cons {
-            car: Box::new(Sexp::Atom(Atom::Char(first))),
-            cdr: Box::new(Sexp::Atom(Atom::Nil)),
-        });
+//     if let Some(first) = rev.next() {
+//         let mut sexp = Box::new(Sexp::Cons {
+//             car: Box::new(Sexp::Atom(Atom::Char(first))),
+//             cdr: Box::new(Sexp::Atom(Atom::Nil)),
+//         });
 
-        for c in rev {
-            let new = Box::new(Sexp::Cons {
-                car: Box::new(Sexp::Atom(Atom::Char(c))),
-                cdr: sexp,
-            });
+//         for c in rev {
+//             let new = Box::new(Sexp::Cons {
+//                 car: Box::new(Sexp::Atom(Atom::Char(c))),
+//                 cdr: sexp,
+//             });
 
-            sexp = new;
-        }
+//             sexp = new;
+//         }
 
-        return *sexp;
-    }
+//         return *sexp;
+//     }
 
-    return Sexp::Atom(Atom::Nil);
-}
+//     return Sexp::Atom(Atom::Nil);
+// }
 
 fn parse_atom(token: &str) -> Sexp {
     match token.as_ref() {
         "true" => Sexp::Atom(Atom::Bool(true)),
         "false" => Sexp::Atom(Atom::Bool(false)),
-        "nil" => Sexp::Atom(Atom::Nil),
+        "nil" => Sexp::List(vec![]),
         _ => match token.parse::<i32>() {
             Ok(i) => Sexp::Atom(Atom::Number(Number::Int(i))),
             Err(_) => match token.parse::<f64>() {
@@ -91,13 +81,9 @@ fn parse_atom(token: &str) -> Sexp {
 }
 
 fn parse_quoted(tokens: &mut VecDeque<Token>) -> Result<Sexp, Error> {
-    let tail = Sexp::Cons {
-        car: Box::new(read_from_tokens(tokens)?),
-        cdr: Box::new(Sexp::Atom(Atom::Nil)),
-    };
-    let sexp = Sexp::Cons {
-        car: Box::new(Sexp::Atom(Atom::Symbol("'".to_owned()))),
-        cdr: Box::new(tail),
-    };
-    Ok(sexp)
+    let ret = vec![
+        Sexp::Atom(Atom::Symbol("'".to_owned())),
+        read_from_tokens(tokens)?
+    ];
+    Ok(Sexp::List(ret))
 }

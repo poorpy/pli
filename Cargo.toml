@@ -15,3 +15,4 @@ name = "pli"
 path = "src/main.rs"
 
 [dependencies]
+itertools = "0.10.0"
