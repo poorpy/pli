@@ -13,7 +13,6 @@ pub fn read_from_tokens(tokens: &mut VecDeque<Token>) -> Result<Sexp, Error> {
             Token::Quote => parse_quoted(tokens),
             Token::Symbol(s) => Ok(parse_atom(&s)),
             Token::String(s) => Ok(Sexp::Atom(Atom::String(s)))
-            // Token::String(s) => Ok(Sexp::Atom(Atom::S)),
         },
     }
 }
@@ -40,30 +39,6 @@ fn parse_list(tokens: &mut VecDeque<Token>) -> Result<Sexp, Error> {
 
     Ok(Sexp::List(vec))
 }
-
-// fn parse_string(token: &str) -> Sexp {
-//     let mut rev = token.chars().rev();
-
-//     if let Some(first) = rev.next() {
-//         let mut sexp = Box::new(Sexp::Cons {
-//             car: Box::new(Sexp::Atom(Atom::Char(first))),
-//             cdr: Box::new(Sexp::Atom(Atom::Nil)),
-//         });
-
-//         for c in rev {
-//             let new = Box::new(Sexp::Cons {
-//                 car: Box::new(Sexp::Atom(Atom::Char(c))),
-//                 cdr: sexp,
-//             });
-
-//             sexp = new;
-//         }
-
-//         return *sexp;
-//     }
-
-//     return Sexp::Atom(Atom::Nil);
-// }
 
 fn parse_atom(token: &str) -> Sexp {
     match token.as_ref() {
